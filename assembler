@@ -1,0 +1,4 @@
+3_input_function = [add, sum, mul, or, xor, and]
+2_input_function = [mov, ld, st, div, ls, rs, not, cmp]
+1_input_function = [jmp, jlt, jgt, je]
+0_input_function = [hlt]
