@@ -3,8 +3,9 @@ input_function1 = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011'
 input_function2 = {'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110'}
 input_function3 = {'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111'}
 all_function = {'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111', 'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110', 'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
-register_value = {'R0': '000', 'R1': '001', 'R2': '010', 'R3': '011', 'R4': '100', 'R5': '101', 'R6': '110', 'FLAGS': '111'}
+register_value = {'R0': '000', 'R1': '001', 'R2': '010', 'R3': '011', 'R4': '100', 'R5': '101', 'R6': '110'}
 HLT = '01010'
+FLAGS = '111'
 
 function_stucture = {'A' : {'opcode' : 5, 'unused' : 2, 'reg1' : 3, 'reg2' : 3, 'reg3' : 3},
 'B' : {'opcode' : 5, 'reg1': 3, 'imm' : 8},
@@ -13,11 +14,11 @@ function_stucture = {'A' : {'opcode' : 5, 'unused' : 2, 'reg1' : 3, 'reg2' : 3, 
 "E" : {'opcode' : 5, 'unused' : 3, 'mem' : 8}}
 maximum_number_stored = 255
 
-A = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
-B = {'MOVI': '10010', 'LS': '11001', 'RS': '11000'}   
-C = {'MOVR': '10011', 'DIV': '10111', 'NOT': '11101', 'CMP': '11110'}
-D = {'LD': '10100', 'ST': '10101'}
-E = {'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111'}
+# A = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
+# B = {'MOVI': '10010', 'LS': '11001', 'RS': '11000'}   
+# C = {'MOVR': '10011', 'DIV': '10111', 'NOT': '11101', 'CMP': '11110'}
+# D = {'LD': '10100', 'ST': '10101'}
+# E = {'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111'}
 
 input_instruction = []
 number_of_line = 0
@@ -34,23 +35,28 @@ label = {}
 result = []
 universal_flag = True
 
-varfalse = False
+def errorformat(error, n):
+    print(f"ERROR {error} in line number {n}")
+
 line_number = len(input_instruction)
 flag = True
+tmp = 0
 while flag:
+    tmp += 1
     if input_instruction[0][0] == "VAR":
         if (len(input_instruction[0]) == 2) and input_instruction[0][1][0].isdigit() == False:
             line_number -= 1
             var.append(input_instruction[0][1])
             input_instruction.pop(0)
         else:
-            print("var is not defined correctly")
+            errorformat("var is not defined", tmp)
             universal_flag = False
             flag = False
     else:
         flag = False
 
-if line_number > maximum_number_stored:
+if line_number > maximum_number_stored + 1:
+    print(f"length of code is exceed {maximum_number_stored}")
     universal_flag = False
 
 def label_check(input_instruction, line_num):
@@ -63,20 +69,22 @@ def label_check(input_instruction, line_num):
     else:
         label_check(input_instruction, line_num)
 
+tmp = 0
 for i in range(line_number):
+    tmp += 1
     if input_instruction[i][0] == "VAR":
-        print("var is not defined in the inside of code")
+        errorformat("var is defined in middle", tmp)
         universal_flag = False
         break
     elif label_check(input_instruction, i):
-        print("label is not defined correctly")
+        errorformat("label is not defined correctly", tmp)
         universal_flag = False
         break
 
 if input_instruction[-1] == ["HLT"]:
     input_instruction.pop()
 else:
-    print("hlt is not used in last")
+    print("hlt not being used as the last instruction")
     universal_flag = False
 
 var_location = {}
@@ -93,63 +101,72 @@ def func_checker(function, lis):
         return True
     return False
 
+tmp = 0
 for i in input_instruction:
+    tmp += 1
     if len(i) == 2 and func_checker(i[0], input_function3):
         if i[1] in label:
-            result.append(f"{tmp}000{length_fixer(label[i[1]], function_stucture['E']['mem'])}")
+            result.append(f"{all_function[i[0]]}000{length_fixer(label[i[1]], function_stucture['E']['mem'])}")
         elif i[1].isdigit() and int(i[1], 2) <= maximum_number_stored:
-            result.append(f"{tmp}000{length_fixer(i[1], function_stucture['E']['mem'])}")
+            result.append(f"{all_function[i[0]]}000{length_fixer(i[1], function_stucture['E']['mem'])}")
         else:
-            print("invalid label")
+            errorformat("use of undefined label", tmp)
             universal_flag = False
             break
     elif len(i) == 4 and func_checker(i[0], input_function1):
         for j in i[1:]:
             if j not in register_value:
                 universal_flag = False
-                print("invalid register used")
+                errorformat("invalid register is used", tmp)
                 break
         if universal_flag:
-            result.append(f"{tmp}00{register_value[i[1]]}{register_value[i[2]]}{register_value[i[3]]}")
+            result.append(f"{all_function[i[0]]}00{register_value[i[1]]}{register_value[i[2]]}{register_value[i[3]]}")
     elif i[0] == 'MOV':
         if i[1] in register_value:
-            if i[-1][1] == '$':
-                print(f"{all_function['MOVI']}{register_value[i[1]]}{bin(i[-1])[2:]}")
-            elif i[1] in register_value:
-                print(f"{all_function['MOVR']}00000{register_value[i[1]]}{register_value[i[-1]]}")
+            if i[-1][0] == '$':
+                if i[-1][1:].isdigit() == True and int(i[-1][1:]) <= maximum_number_stored:
+                    result.append(f"{all_function['MOVI']}{register_value[i[1]]}{length_fixer(bin(int(i[-1][1:]))[2:], 8)}")
+                else:
+                    errorformat("invalid number is used", tmp)
+                    universal_flag = False
+                    break
+            elif i[-1] in register_value:
+                result.append(f"{all_function['MOVR']}00000{register_value[i[1]]}{register_value[i[-1]]}")
+            elif i[-1] == 'FLAGS':
+                result.append(f"{all_function['MOVR']}00000{register_value[i[1]]}{FLAGS}")
             else:
                 universal_flag = False
-                print('invalid register is used')
+                errorformat("illegal use of register", tmp)
                 break
         else:
-            universal_flag == False
-            print('invalid register is used')
+            universal_flag = False
+            errorformat("invalid use of register", tmp)
             break
     elif len(i) == 3 and func_checker(i[0], input_function2):
         if i[1] in register_value:
             if i[-1][0] == '$':
                 if int(i[-1][1:]) <= maximum_number_stored and i[-1][1:].isdigit():
-                    result.append(f"{tmp}{register_value[i[1]]}{length_fixer(bin(int(i[2][1:])).removeprefix('0b'), function_stucture['B']['imm'])}")
+                    result.append(f"{all_function[i[0]]}{register_value[i[1]]}{length_fixer(bin(int(i[2][1:])).removeprefix('0b'), function_stucture['B']['imm'])}")
                 else:
-                    print("value is invalid")
+                    errorformat("value is invalid", tmp)
                     universal_flag = False
                     break     
             elif i[-1] in register_value:
-                result.append(f"{tmp}00000{register_value[i[1]]}{register_value[i[-1]]}")
+                result.append(f"{all_function[i[0]]}00000{register_value[i[1]]}{register_value[i[-1]]}")
             elif i[-1] in var_location:
-                result.append(f"{tmp}{register_value[i[1]]}{length_fixer(var_location[i[-1]], function_stucture['D']['mem'])}")
+                result.append(f"{all_function[i[0]]}{register_value[i[1]]}{length_fixer(var_location[i[-1]], function_stucture['D']['mem'])}")
             elif i[-1].isdigit() and int(i[-1][:], 2) <=maximum_number_stored:
-                result.append(f"{tmp}{register_value[i[1]]}{length_fixer(i[2], function_stucture['D']['mem'])}")
+                result.append(f"{all_function[i[0]]}{register_value[i[1]]}{length_fixer(i[2], function_stucture['D']['mem'])}")
             else:
-                print("invalid register is used")
+                errorformat("invalid register is used")
                 universal_flag = False
                 break
         else:
-            print("invalid register is used")
+            errorformat("invalid register is used", tmp)
             universal_flag = False
             break
     else:
-        print("invalid funtion call")
+        errorformat("invalid function is used", tmp)
         universal_flag = False
         break
 result.append('0101000000000000')
