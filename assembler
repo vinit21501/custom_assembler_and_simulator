@@ -47,7 +47,7 @@ else:
 line_number = len(input_instruction)
 flag = True
 tmp = 0
-while flag and universal_flag:
+while flag:
     tmp += 1
     if input_instruction[0][0] == "VAR":
         if (len(input_instruction[0]) == 2) and input_instruction[0][1][0].isdigit() == False:
@@ -90,8 +90,8 @@ for i in range(line_number):
 var_location = {}
 tmp = line_number
 for i in var:
-    var_location[i] = bin(tmp).removeprefix('0b')
     tmp += 1
+    var_location[i] = bin(tmp).removeprefix('0b')
 
 def length_fixer(strig, num):
     return f"{(num - len(strig)) * '0'}{strig}"
