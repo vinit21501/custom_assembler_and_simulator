@@ -49,7 +49,7 @@ flag = True
 tmp = 0
 while flag and universal_flag:
     tmp += 1
-    if input_instruction[0][0] == "VAR":
+    if len(input_instruction) and input_instruction[0][0] == "VAR":
         if (len(input_instruction[0]) == 2) and input_instruction[0][1][0].isdigit() == False:
             line_number -= 1
             var.append(input_instruction[0][1])
@@ -78,7 +78,7 @@ def label_check(input_instruction, line_num):
 tmp = 0
 for i in range(line_number):
     tmp += 1
-    if input_instruction[i][0] == "VAR":
+    if len(input_instruction) and input_instruction[i][0] == "VAR":
         errorformat("var is defined in middle", tmp)
         universal_flag = False
         break
