@@ -47,7 +47,7 @@ else:
 line_number = len(input_instruction)
 flag = True
 tmp = 0
-while flag:
+while flag and universal_flag:
     tmp += 1
     if input_instruction[0][0] == "VAR":
         if (len(input_instruction[0]) == 2) and input_instruction[0][1][0].isdigit() == False:
@@ -158,7 +158,7 @@ for i in input_instruction:
             elif i[-1].isdigit() and int(i[-1][:], 2) <=maximum_number_stored:
                 result.append(f"{all_function[i[0]]}{register_value[i[1]]}{length_fixer(i[2], function_stucture['D']['mem'])}")
             else:
-                errorformat("invalid register is used")
+                errorformat("invalid register is used", tmp)
                 universal_flag = False
                 break
         else:
