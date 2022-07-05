@@ -38,10 +38,16 @@ universal_flag = True
 def errorformat(error, n):
     print(f"ERROR {error} in line number {n}")
 
+if input_instruction[-1] == ["HLT"]:
+    input_instruction.pop()
+else:
+    print("hlt not being used as the last instruction")
+    universal_flag = False
+
 line_number = len(input_instruction)
 flag = True
 tmp = 0
-while flag:
+while flag and universal_flag:
     tmp += 1
     if input_instruction[0][0] == "VAR":
         if (len(input_instruction[0]) == 2) and input_instruction[0][1][0].isdigit() == False:
@@ -80,12 +86,6 @@ for i in range(line_number):
         errorformat("label is not defined correctly", tmp)
         universal_flag = False
         break
-
-if input_instruction[-1] == ["HLT"]:
-    input_instruction.pop()
-else:
-    print("hlt not being used as the last instruction")
-    universal_flag = False
 
 var_location = {}
 tmp = line_number
