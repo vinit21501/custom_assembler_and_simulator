@@ -1,4 +1,3 @@
-from re import T
 import sys
 input_function1 = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
 input_function2 = {'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110'}
