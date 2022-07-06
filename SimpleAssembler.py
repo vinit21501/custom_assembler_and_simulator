@@ -1,3 +1,4 @@
+from re import T
 import sys
 input_function1 = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
 input_function2 = {'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110'}
@@ -41,8 +42,11 @@ def errorformat(error, n):
 def label_check(input_instruction, line_num):
     if input_instruction[line_num][0][-1] != ":":
         return False
-    label[input_instruction[line_num][0][:-1]] = bin(line_num).removeprefix("0b")
-    input_instruction[line_num].pop(0)
+    if input_instruction[line_num][0][:-1].isalnum() and input_instruction[line_num][0][0].isdigit() == False:
+        label[input_instruction[line_num][0][:-1]] = bin(line_num).removeprefix("0b")
+        input_instruction[line_num].pop(0)
+    else:
+        return True
     if(len(input_instruction[line_num]) < 1):
         return True
     else:
@@ -68,7 +72,7 @@ tmp = 0
 while flag and universal_flag:
     tmp += 1
     if len(input_instruction) and input_instruction[0][0] == "VAR":
-        if (len(input_instruction[0]) == 2) and input_instruction[0][1][0].isdigit() == False:
+        if (len(input_instruction[0]) == 2) and input_instruction[0][1][0].isdigit() == False and input_instruction[0][1].isalnum():
             line_number -= 1
             var.append(input_instruction[0][1])
             input_instruction.pop(0)
