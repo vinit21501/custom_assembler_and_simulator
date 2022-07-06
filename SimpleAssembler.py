@@ -41,7 +41,7 @@ def errorformat(error, n):
 def label_check(input_instruction, line_num):
     if input_instruction[line_num][0][-1] != ":":
         return False
-    if input_instruction[line_num][0][:-1].isalnum() and input_instruction[line_num][0][0].isdigit() == False:
+    if input_instruction[line_num][0][0].isdigit() == False:
         label[input_instruction[line_num][0][:-1]] = bin(line_num).removeprefix("0b")
         input_instruction[line_num].pop(0)
     else:
