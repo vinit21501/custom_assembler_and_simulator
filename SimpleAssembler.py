@@ -38,13 +38,31 @@ universal_flag = True
 def errorformat(error, n):
     print(f"ERROR {error} in line number {n}")
 
+def label_check(input_instruction, line_num):
+    if input_instruction[line_num][0][-1] != ":":
+        return False
+    label[input_instruction[line_num][0][:-1]] = bin(line_num).removeprefix("0b")
+    input_instruction[line_num].pop(0)
+    if(len(input_instruction[line_num]) < 1):
+        return True
+    else:
+        label_check(input_instruction, line_num)
+
+line_number = len(input_instruction)
+tmp = 0
+for i in range(line_number):
+    tmp += 1
+    if label_check(input_instruction, i):
+        errorformat("label is not defined correctly", tmp)
+        universal_flag = False
+        break
+
 if input_instruction[-1] == ["HLT"]:
     input_instruction.pop()
 else:
     print("hlt not being used as the last instruction")
     universal_flag = False
 
-line_number = len(input_instruction)
 flag = True
 tmp = 0
 while flag and universal_flag:
@@ -65,28 +83,6 @@ if line_number > maximum_number_stored + 1:
     print(f"length of code is exceed {maximum_number_stored}")
     universal_flag = False
 
-def label_check(input_instruction, line_num):
-    if input_instruction[line_num][0][-1] != ":":
-        return False
-    label[input_instruction[line_num][0][:-1]] = bin(line_num).removeprefix("0b")
-    input_instruction[line_num].pop(0)
-    if(len(input_instruction[line_num]) < 1):
-        return True
-    else:
-        label_check(input_instruction, line_num)
-
-tmp = 0
-for i in range(line_number):
-    tmp += 1
-    if len(input_instruction) and input_instruction[i][0] == "VAR":
-        errorformat("var is defined in middle", tmp)
-        universal_flag = False
-        break
-    elif label_check(input_instruction, i):
-        errorformat("label is not defined correctly", tmp)
-        universal_flag = False
-        break
-
 var_location = {}
 tmp = line_number
 for i in var:
@@ -104,7 +100,9 @@ def func_checker(function, lis):
 tmp = 0
 for i in input_instruction:
     tmp += 1
-    if len(i) == 2 and func_checker(i[0], input_function3):
+    if i[0] == "VAR":
+        errorformat("var is used in middle", tmp)
+    elif len(i) == 2 and func_checker(i[0], input_function3):
         if i[1] in label:
             result.append(f"{all_function[i[0]]}000{length_fixer(label[i[1]], function_stucture['E']['mem'])}")
         elif i[1].isdigit() and int(i[1], 2) <= maximum_number_stored:
