@@ -1,2 +1,2 @@
-# CO-PROJECT-2022
+# custom_assembler_and_simulator
 functionality assembler and simulator
