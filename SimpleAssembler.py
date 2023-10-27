@@ -1,8 +1,8 @@
 import sys
-input_function1 = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
-input_function2 = {'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110'}
+input_function1 = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100', 'ADDF': '00000', 'SUBF':'00001'}
+input_function2 = {'MOVF': '00010', 'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110'}
 input_function3 = {'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111'}
-all_function = {'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111', 'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110', 'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
+all_function = {'MOVF': '00010', 'ADDF': '00000', 'SUBF':'00001', 'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111', 'MOVI': '10010', 'MOVR': '10011', 'LD': '10100', 'ST': '10101', 'DIV': '10111', 'LS': '11001', 'RS': '11000', 'NOT': '11101', 'CMP': '11110', 'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
 register_value = {'R0': '000', 'R1': '001', 'R2': '010', 'R3': '011', 'R4': '100', 'R5': '101', 'R6': '110'}
 HLT = '01010'
 FLAGS = '111'
@@ -15,7 +15,7 @@ function_stucture = {'A' : {'opcode' : 5, 'unused' : 2, 'reg1' : 3, 'reg2' : 3, 
 maximum_number_stored = 255
 
 # A = {'ADD': '10000', 'SUB': '10001', 'MUL': '10110', 'OR': '11011', 'XOR': '11010', 'AND': '11100'}
-# B = {'MOVI': '10010', 'LS': '11001', 'RS': '11000'}   
+# B = {'MOVI': '10010', 'LS': '11001', 'RS': '11000', 'MOVF': '00010'}
 # C = {'MOVR': '10011', 'DIV': '10111', 'NOT': '11101', 'CMP': '11110'}
 # D = {'LD': '10100', 'ST': '10101'}
 # E = {'JMP': '11111', 'JLT': '01100', 'JGT': '01101', 'JE': '01111'}
@@ -51,19 +51,52 @@ def label_check(input_instruction, line_num):
     else:
         label_check(input_instruction, line_num)
 
-line_number = len(input_instruction)
-tmp = 0
-for i in range(line_number):
-    tmp += 1
-    if label_check(input_instruction, i):
-        errorformat("label is not defined correctly", tmp)
-        universal_flag = False
-        break
+def customIEEEtodecimal(binary):
+    exponent = int(binary[:3], 2) - 3
+    mantissa = binary[3:]
+    number = 1
+    j = -1
+    for i in mantissa:
+        number += (2 ** j) * int(i)
+        j -= 1
+    number *= 2 ** exponent
+    return number
 
-if input_instruction[-1] == ["HLT"]:
-    input_instruction.pop()
-else:
-    print("hlt not being used as the last instruction")
+def decimaltocustomIEEE(immediate):
+    if 0.125 <= immediate <= 31.5:
+        integral = int(immediate)
+        answer = bin(integral)[2:]
+        exponent = len(answer) - 1
+        precision = 6
+        tmp = ''
+        fractal = immediate - integral
+        if answer[0] == '0':
+            answer = answer[1:]
+            digit = 0
+            while digit == 0:
+                if exponent == -3:
+                    return False
+                exponent -= 1
+                fractal *= 2
+                digit = int(fractal)
+            answer += '1'
+            fractal -= 1
+        precision = precision - len(answer)
+        while precision > 0:
+            fractal *= 2
+            digit = int(fractal)
+            tmp += str(digit)
+            precision -= 1
+            fractal -= digit
+        exponent = bin(exponent + 3)[2:]
+        tmp = '0' * (3 - len(exponent)) + exponent + answer[1:] + str(tmp)
+        return tmp
+    else:
+        return False
+
+line_number = len(input_instruction)
+if line_number > maximum_number_stored + 1:
+    print(f"length of code is exceed {maximum_number_stored}")
     universal_flag = False
 
 flag = True
@@ -82,15 +115,26 @@ while flag and universal_flag:
     else:
         flag = False
 
-if line_number > maximum_number_stored + 1:
-    print(f"length of code is exceed {maximum_number_stored}")
-    universal_flag = False
+line_number = len(input_instruction)
+tmp = 0
+for i in range(line_number):
+    tmp += 1
+    if label_check(input_instruction, i):
+        errorformat("label is not defined correctly", tmp)
+        universal_flag = False
+        break
 
 var_location = {}
-tmp = line_number
+tmp = len(input_instruction)
 for i in var:
-    tmp += 1
     var_location[i] = bin(tmp).removeprefix('0b')
+    tmp += 1
+
+if input_instruction[-1] == ["HLT"]:
+    input_instruction.pop()
+else:
+    print("hlt not being used as the last instruction")
+    universal_flag = False
 
 def length_fixer(strig, num):
     return f"{(num - len(strig)) * '0'}{strig}"
@@ -133,21 +177,37 @@ for i in input_instruction:
                     break
             elif i[-1] in register_value:
                 result.append(f"{all_function['MOVR']}00000{register_value[i[1]]}{register_value[i[-1]]}")
-            elif i[-1] == 'FLAGS':
-                result.append(f"{all_function['MOVR']}00000{register_value[i[1]]}{FLAGS}")
             else:
                 universal_flag = False
                 errorformat("illegal use of register", tmp)
                 break
+        elif (i[1] == 'FLAGS' ) & (i[-1] in register_value):
+                result.append(f"{all_function['MOVR']}00000{FLAGS}{register_value[i[-1]]}")
         else:
             universal_flag = False
             errorformat("invalid use of register", tmp)
             break
+    elif i[0] == 'MOVF':
+        if i[1] in register_value and i[2][0] == "$":
+            number = i[2][1:].split('.')
+            if len(number) == 2 and number[0].isdigit() and number[1].isdigit():
+                temp = decimaltocustomIEEE(float(i[2][1:]))
+                if temp == False:
+                    universal_flag = False
+                    errorformat("value cannot stored in custom IEEE format", tmp)
+                else:
+                    result.append(f"{all_function['MOVF']}{register_value[i[1]]}{length_fixer(temp, 8)}")
+            else:
+                universal_flag = False
+                errorformat("value cannot stored in custom IEEE format", tmp)
     elif len(i) == 3 and func_checker(i[0], input_function2):
         if i[1] in register_value:
             if i[-1][0] == '$':
-                if int(i[-1][1:]) <= maximum_number_stored and i[-1][1:].isdigit():
+                tmp = i[-1][1:].split(".")
+                if len(tmp) == 1 and tmp[0].isdigit() and int(tmp[0]) <= maximum_number_stored:
                     result.append(f"{all_function[i[0]]}{register_value[i[1]]}{length_fixer(bin(int(i[2][1:])).removeprefix('0b'), function_stucture['B']['imm'])}")
+                elif len(tmp) == 2 and tmp[0].isdigit() and tmp[1].isdigit() and int(tmp[0]) < 31:
+                    result.append(f"{all_function[i[0]]}{register_value[i[1]]}{decimaltocustomIEEE(i[-1][0])}")
                 else:
                     errorformat("value is invalid", tmp)
                     universal_flag = False
